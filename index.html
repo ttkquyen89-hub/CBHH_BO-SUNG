@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chemistry Worksheet - Atoms & Elements</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdfa; /* Nền xanh ngọc nhạt */
+        }
+        .blur-text {
+            filter: blur(5px);
+            user-select: none;
+            transition: filter 0.3s ease;
+        }
+        .blur-text:hover {
+            filter: blur(0px); /* Cho phép lướt chuột qua để xem nhanh */
+        }
+        .speaker-btn {
+            transition: transform 0.1s ease, background-color 0.2s ease;
+        }
+        .speaker-btn:active {
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen p-4 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-teal-100">
+        <div class="bg-teal-600 text-white p-6 md:p-8 text-center">
+            <h1 class="text-2xl md:text-4xl font-bold mb-2">Phiếu Học Tập Tương Tác</h1>
+            <h2 class="text-lg md:text-xl font-medium text-teal-100">Chủ đề: Atoms & Chemical Elements (KHTN 7)</h2>
+            <p class="mt-4 text-sm md:text-base text-teal-50 opacity-90 max-w-2xl mx-auto">
+                <strong>Hướng dẫn:</strong> Nhấn vào nút 🔊 để nghe phát âm tiếng Anh. Bạn có thể dùng nút "Ẩn/Hiện tiếng Việt" để tự ôn bài. Hãy lướt chuột qua các từ bị mờ để xem trộm đáp án nhé!
+            </p>
+        </div>
+
+        <div class="p-4 bg-teal-50 border-b border-teal-100 flex justify-between items-center">
+            <div class="text-sm font-semibold text-teal-800">
+                <span id="word-count">0</span> từ vựng
+            </div>
+            <button id="toggle-vietnamese" class="bg-white text-teal-700 border border-teal-300 hover:bg-teal-600 hover:text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm text-sm md:text-base flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span id="toggle-text">Ẩn tiếng Việt</span>
+            </button>
+        </div>
+
+        <div class="overflow-x-auto p-4 md:p-6">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b-2 border-teal-200">
+                        <th class="py-3 px-4 text-teal-800 font-bold w-1/4">Từ / Cụm từ (English)</th>
+                        <th class="py-3 px-4 text-teal-800 font-bold w-1/4">Phiên âm (IPA)</th>
+                        <th class="py-3 px-4 text-teal-800 font-bold w-1/3">Nghĩa tiếng Việt</th>
+                        <th class="py-3 px-4 text-teal-800 font-bold text-center">Gọi tên</th>
+                    </tr>
+                </thead>
+                <tbody id="vocab-body">
+                    <!-- Dữ liệu sẽ được đổ vào đây bằng JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="no-voice-warning" class="hidden bg-yellow-50 text-yellow-800 p-4 text-center text-sm border-t border-yellow-200">
+            ⚠️ Trình duyệt của bạn hiện không hỗ trợ giọng nói hoặc hệ thống chưa tải xong dữ liệu giọng đọc. Vui lòng thử lại trên Google Chrome hoặc Microsoft Edge.
+        </div>
+        
+        <div class="bg-gray-50 p-4 text-center text-sm text-gray-500 border-t border-gray-200">
+            Biên soạn cho chương trình KHTN 7 - Tiếng Anh chuyên ngành Hóa học.
+        </div>
+    </div>
+
+    <script>
+        const vocabData = [
+            { category: "1. Cấu tạo Nguyên tử (Atomic Structure)" },
+            { en: "Atom", ipa: "/ˈæt.əm/", vi: "Nguyên tử" },
+            { en: "Subatomic particle", ipa: "/ˌsʌb.əˈtɒm.ɪk ˈpɑː.tɪ.kəl/", vi: "Hạt dưới nguyên tử" },
+            { en: "Nucleus", ipa: "/ˈnjuː.kli.əs/", vi: "Hạt nhân" },
+            { en: "Proton", ipa: "/ˈprəʊ.tɒn/", vi: "Hạt proton (mang điện dương)" },
+            { en: "Neutron", ipa: "/ˈnjuː.trɒn/", vi: "Hạt neutron (không mang điện)" },
+            { en: "Electron", ipa: "/ɪˈlek.trɒn/", vi: "Hạt electron (mang điện âm)" },
+            { en: "Electron shell", ipa: "/ɪˈlek.trɒn ʃel/", vi: "Lớp vỏ electron" },
+            { en: "Charge", ipa: "/tʃɑːdʒ/", vi: "Điện tích" },
+            { en: "Positively charged", ipa: "/ˈpɒz.ə.tɪv.li tʃɑːdʒd/", vi: "Mang điện tích dương" },
+            { en: "Negatively charged", ipa: "/ˈneɡ.ə.tɪv.li tʃɑːdʒd/", vi: "Mang điện tích âm" },
+            { en: "Electrically neutral", ipa: "/ɪˈlek.trɪ.kəl.i ˈnjuː.trəl/", vi: "Trung hòa về điện" },
+            { en: "Atomic mass", ipa: "/əˈtɒm.ɪk mæs/", vi: "Khối lượng nguyên tử" },
+            { en: "Atomic number", ipa: "/əˈtɒm.ɪk ˈnʌm.bər/", vi: "Số hiệu nguyên tử" },
+            { category: "2. Nguyên tố Hóa học (Chemical Elements)" },
+            { en: "Chemical element", ipa: "/ˈkem.ɪ.kəl ˈel.ɪ.mənt/", vi: "Nguyên tố hóa học" },
+            { en: "Chemical symbol", ipa: "/ˈkem.ɪ.kəl ˈsɪm.bəl/", vi: "Ký hiệu hóa học" },
+            { en: "Periodic table", ipa: "/ˌpɪə.riˈɒd.ɪk ˈteɪ.bəl/", vi: "Bảng tuần hoàn các nguyên tố hóa học" },
+            { en: "Matter", ipa: "/ˈmæt.ər/", vi: "Vật chất" },
+            { en: "Substance", ipa: "/ˈsʌb.stəns/", vi: "Chất" },
+            { category: "3. Mẫu câu áp dụng (Example Sentences)" },
+            { en: "An atom consists of a nucleus and one or more electrons.", ipa: "", vi: "Một nguyên tử bao gồm một hạt nhân và một hoặc nhiều electron." },
+            { en: "The nucleus contains protons and neutrons.", ipa: "", vi: "Hạt nhân chứa các hạt proton và neutron." },
+            { en: "Protons are positively charged, while electrons are negatively charged.", ipa: "", vi: "Proton mang điện tích dương, trong khi electron mang điện tích âm." },
+            { en: "An atom is electrically neutral because the number of protons equals the number of electrons.", ipa: "", vi: "Một nguyên tử trung hòa về điện vì số lượng proton bằng với số lượng electron." },
+            { en: "Each element is represented by a unique chemical symbol.", ipa: "", vi: "Mỗi nguyên tố được biểu diễn bằng một ký hiệu hóa học duy nhất." },
+            { en: "For example, the chemical symbol for Oxygen is O, and its atomic number is 8.", ipa: "", vi: "Ví dụ, ký hiệu hóa học của Oxygen là O, và số hiệu nguyên tử của nó là 8." }
+        ];
+
+        const tbody = document.getElementById('vocab-body');
+        let wordCount = 0;
+        let availableVoices = [];
+
+        function loadVoices() {
+            availableVoices = window.speechSynthesis.getVoices();
+        }
+        
+        // Khởi tạo giọng đọc ngay lập tức và khi có sự kiện voiceschanged
+        loadVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        function renderTable() {
+            tbody.innerHTML = '';
+            wordCount = 0;
+
+            vocabData.forEach((item) => {
+                if (item.category) {
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-teal-50";
+                    tr.innerHTML = `
+                        <td colspan="4" class="py-3 px-4 font-bold text-teal-900 border-b border-teal-200">
+                            ${item.category}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                } else {
+                    wordCount++;
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-gray-100 hover:bg-gray-50 transition-colors";
+                    
+                    // Thoát ký tự nháy đơn nếu có để tránh lỗi cú pháp JS (đây có thể là một phần nguyên nhân gây lỗi trước đó nếu dữ liệu có chứa dấu nháy)
+                    const safeEn = item.en.replace(/'/g, "\\'");
+                    
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-semibold text-teal-700">${item.en}</td>
+                        <td class="py-3 px-4 text-gray-500 font-mono text-sm">${item.ipa}</td>
+                        <td class="py-3 px-4 text-gray-700 font-medium vietnamese-text">${item.vi}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button onclick="speak('${safeEn}')" class="speaker-btn bg-teal-100 text-teal-700 p-2 rounded-full hover:bg-teal-500 hover:text-white shadow-sm" title="Nghe phát âm">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+            document.getElementById('word-count').innerText = wordCount;
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // Mẹo: Trình duyệt đôi khi cần tải lại danh sách giọng đọc
+                if (availableVoices.length === 0) {
+                    availableVoices = window.speechSynthesis.getVoices();
+                }
+                
+                // 1. Ưu tiên cao nhất: Tìm các giọng AI "Natural" hoặc "Online" của nữ từ Microsoft Edge (cực kỳ giống người thật)
+                let bestVoice = availableVoices.find(voice => 
+                    voice.lang.startsWith('en') && 
+                    (voice.name.includes('Natural') || voice.name.includes('Online')) && 
+                    (voice.name.includes('Female') || voice.name.includes('Aria') || voice.name.includes('Jenny') || voice.name.includes('Sonia') || voice.name.includes('Michelle'))
+                );
+
+                // 2. Ưu tiên thứ hai: Giọng Google US English rất chuẩn trên Chrome
+                if (!bestVoice) {
+                    bestVoice = availableVoices.find(voice => voice.name === 'Google US English');
+                }
+                
+                // 3. Ưu tiên thứ ba: Các giọng nữ chuẩn hệ thống (Zira, Samantha, Victoria)
+                if (!bestVoice) {
+                    bestVoice = availableVoices.find(voice => 
+                        voice.lang.startsWith('en') && 
+                        (voice.name.includes('Female') || voice.name.includes('Samantha') || voice.name.includes('Zira') || voice.name.includes('Victoria'))
+                    );
+                }
+
+                // 4. Fallback: Bất kỳ giọng tiếng Anh nào có sẵn trên máy
+                if (!bestVoice) {
+                     bestVoice = availableVoices.find(voice => voice.lang.startsWith('en'));
+                }
+
+                if (bestVoice) {
+                    utterance.voice = bestVoice;
+                }
+
+                utterance.lang = 'en-US'; 
+                // Giảm tốc độ xuống một chút (0.85) và tăng cao độ nhẹ (1.1) giúp âm thanh tròn vành, rõ chữ và nữ tính hơn
+                utterance.rate = 0.85;  
+                utterance.pitch = 1.1; 
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                document.getElementById('no-voice-warning').classList.remove('hidden');
+            }
+        }
+
+        const toggleBtn = document.getElementById('toggle-vietnamese');
+        const toggleText = document.getElementById('toggle-text');
+        let isHidden = false;
+
+        toggleBtn.addEventListener('click', () => {
+            isHidden = !isHidden;
+            const viElements = document.querySelectorAll('.vietnamese-text');
+            
+            viElements.forEach(el => {
+                if (isHidden) {
+                    el.classList.add('blur-text');
+                } else {
+                    el.classList.remove('blur-text');
+                }
+            });
+
+            if (isHidden) {
+                toggleText.innerText = "Hiện tiếng Việt";
+                toggleBtn.classList.replace('bg-white', 'bg-teal-100');
+            } else {
+                toggleText.innerText = "Ẩn tiếng Việt";
+                toggleBtn.classList.replace('bg-teal-100', 'bg-white');
+            }
+        });
+
+        // Khởi tạo bảng sau khi mã được tải xong
+        renderTable();
+    </script>
+</body>
+</html>
